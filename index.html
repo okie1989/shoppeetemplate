@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Shirt Designer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Inter:400,500,700&display=swap" as="style" onload="this.rel='stylesheet'">
+</head>
+<body>
+    <noscript>
+        <div style="background:#ff5722;color:#fff;padding:16px;text-align:center;font-size:1.2rem;">
+            Please enable JavaScript to use this T-Shirt Designer.
+        </div>
+    </noscript>
+    <div class="container">
+        <div class="toolbar sticky-toolbar glassy">
+            <select id="mockupSelect" class="fancy-select">
+                <option value="images/putih-pd-dpbl.jpg">Putih Pendek A</option>
+                <option value="images/putih-pd-bldp.jpg">Putih Pendek B</option>
+                <option value="images/putih-pj-dpbl.jpg">Putih Panjang A</option>
+                <option value="images/putih-pj-bldp.jpg">Putih Panjang B</option>
+                <option value="images/hitam-pd-dpbl.jpg">Hitam Pendek A</option>
+                <option value="images/hitam-pd-bldp.jpg">Hitam Pendek B</option>
+                <option value="images/hitam-pj-dpbl.jpg">Hitam Panjang A</option>
+                <option value="images/hitam-pj-bldp.jpg">Hitam Panjang B</option>
+                <option value="images/merah-pd-dpbl.jpg">Merah Pendek A</option>
+                <option value="images/merah-pd-bldp.jpg">Merah Pendek B</option>
+                <option value="images/merah-pj-dpbl.jpg">Merah Panjang A</option>
+                <option value="images/merah-pj-bldp.jpg">Merah Panjang B</option>
+                <option value="images/navy-pd-dpbl.jpg">Navy Pendek A</option>
+                <option value="images/navy-pd-bldp.jpg">Navy Pendek B</option>
+                <option value="images/navy-pj-dpbl.jpg">Navy Panjang A</option>
+                <option value="images/navy-pj-bldp.jpg">Navy Panjang B</option>                  
+            </select>
+            
+            <!-- Size Box for manual design size input -->
+            <div class="sizebox-group">
+                <label for="designWidth">Design Size (cm):</label>
+                <input id="designWidth" type="number" min="1" max="130" step="0.1" value="20">
+                <span>x</span>
+                <input id="designHeight" type="number" min="1" max="130" step="0.1" value="20">
+                <span>cm</span>
+                <button id="applySizeBtn" class="tool-btn" title="Apply Design Size"><i class="fas fa-ruler-combined"></i></button>
+            </div>
+
+            <div class="toolbox">
+                <div class="tool-group">
+                    <button class="tool-btn" id="undoBtn" title="Undo">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button class="tool-btn" id="redoBtn" title="Redo">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+                <div class="tool-group">
+                    <button class="tool-btn" id="snapCenterBtn" title="Snap to Center">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                    <button class="tool-btn" id="resetTransformBtn" title="Reset Transform">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="tool-group">
+                    <button class="tool-btn" id="blendBtn" title="Blend Mode">
+                        <i class="fas fa-palette"></i>
+                    </button>
+                </div>
+                <div class="tool-group">
+                    <button class="tool-btn" id="cropBtn" title="Crop">
+                        <i class="fas fa-crop"></i>
+                    </button>
+                    <button class="tool-btn" id="adjustBtn" title="Brightness & Contrast">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
+                <div class="tool-group-separator"></div>
+                <div class="tool-group">
+                    <button class="tool-btn add-images" id="addImageBtn" type="button" title="Add Image">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="tool-btn" id="previewBtn" title="Preview Design">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="tool-btn" id="downloadBtn" title="Download PNG">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <input id="addImageInput" type="file" accept="image/*" style="display:none" />
+                </div>
+            </div>
+        </div>
+
+        <div id="canvasContainer" class="canvas-container glassy" aria-label="Design Canvas Area">
+            <div class="canvas-loading" id="canvasLoading" style="display:none;">
+                <div class="spinner"></div>
+                <span>Loading...</span>
+            </div>
+            <canvas id="designCanvas" tabindex="0" aria-label="T-Shirt Design Canvas"></canvas>
+            <div id="dropZone" class="animated-dropzone">
+                <div class="drop-content">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drop your design here or click to upload</p>
+                    <small>Supports: PNG, JPG (Max 5MB)</small>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" hidden>
+            </div>
+            <!-- Floating context menu -->
+            <div id="contextMenu" class="context-menu">
+                <button id="ctxDelete"><i class="fas fa-trash"></i> Delete</button>
+                <button id="ctxDuplicate"><i class="fas fa-clone"></i> Duplicate</button>
+                <button id="ctxFront"><i class="fas fa-arrow-up"></i> Bring to Front</button>
+                <button id="ctxBack"><i class="fas fa-arrow-down"></i> Send to Back</button>
+            </div>
+        </div>
+
+        <!-- Professional Crop Modal (Cropper.js) -->
+        <div class="crop-modal" style="display:none;">
+            <div class="crop-modal-content">
+                <div class="crop-modal-header">
+                    <span>Crop Image</span>
+                    <button class="crop-close-btn" aria-label="Close crop modal" title="Close">&times;</button>
+                </div>
+                <div class="crop-modal-body">
+                    <div style="max-width:100%;max-height:60vh;">
+                        <img id="cropImage" src="" alt="Image to crop" draggable="false" style="max-width:100%;max-height:60vh;user-select:none;">
+                    </div>
+                    <!-- Baris kontrol aspect ratio, rotate, flip bisa dihapus jika ingin lebih sederhana -->
+                    <!--
+                    <div style="margin:10px 0;">
+                        <select class="aspect-ratio-select" title="Aspect Ratio">
+                            <option value="free">Free</option>
+                            <option value="1">1:1 (Square)</option>
+                            <option value="4/3">4:3 (Landscape)</option>
+                            <option value="3/4">3:4 (Portrait)</option>
+                            <option value="16/9">16:9 (Widescreen)</option>
+                            <option value="2/3">2:3 (Portrait)</option>
+                        </select>
+                        <button class="crop-rotate-btn" title="Rotate 90°"><i class="fas fa-redo"></i></button>
+                        <button class="crop-flip-h-btn" title="Flip Horizontal"><i class="fas fa-arrows-alt-h"></i></button>
+                        <button class="crop-flip-v-btn" title="Flip Vertical"><i class="fas fa-arrows-alt-v"></i></button>
+                    </div>
+                    -->
+                </div>
+                <div class="crop-modal-footer">
+                    <button class="crop-cancel-btn">Cancel</button>
+                    <button class="crop-apply-btn">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="globalNotification" class="global-notification" style="display:none;"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
